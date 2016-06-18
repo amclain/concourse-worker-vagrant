@@ -1,0 +1,139 @@
+- name: add mercurial apt repository
+  apt_repository:
+    repo: "ppa:mercurial-ppa/releases"
+  become: true
+  become_user: root
+
+- name: add docker apt key
+  apt_key:
+    keyserver: hkp://p80.pool.sks-keyservers.net:80
+    id: 58118E89F3A912897C070ADBF76221572C52609D
+  become: true
+  become_user: root
+
+- name: add docker to apt sources
+  copy:
+    src: docker.list
+    dest: /etc/apt/sources.list.d/docker.list
+  become: true
+  become_user: root
+
+- name: update apt cache
+  apt:
+    update_cache: yes
+    # cache_valid_time: 3600
+  become: true
+  become_user: root
+
+- name: install kernel (this may take a long time)
+  apt:
+    name: "{{ item }}"
+  become: true
+  become_user: root
+  with_items:
+    - "linux-image-extra-{{ kernel_version }}-generic"
+    - "linux-headers-{{ kernel_version }}-generic"
+  register: install_kernel
+
+- name: reboot after kernel install
+  shell: reboot
+  async: 0
+  poll: 0
+  become: true
+  become_user: root
+  when: install_kernel.changed == true
+
+- name: wait for system to reboot
+  local_action: wait_for host="{{ ansible_ssh_host }}" state=started timeout=20
+  when: install_kernel.changed == true
+
+- name: install apt packages
+  apt:
+    name: "{{ item }}"
+  become: true
+  become_user: root
+  with_items:
+    - git
+    - mercurial
+    - curl
+    - wget
+    - vim
+    - ssh
+    - htop
+    - dtach
+    - docker-engine
+
+- name: create concourse base directory
+  file:
+    path: "{{ base_dir }}"
+    state: directory
+    owner: "{{ user }}"
+  become: true
+  become_user: root
+
+- name: download concourse binary (big file)
+  get_url:
+    url: "{{ concourse_binary_url }}"
+    dest: "{{ bin_file }}"
+    mode: 0775
+
+- name: create worker directory
+  file:
+    path: "{{ worker_dir }}"
+    state: directory
+    owner: "{{ user }}"
+  become: true
+  become_user: root
+
+- name: create keys directory
+  file:
+    path: "{{ keys_dir }}"
+    state: directory
+    owner: "{{ user }}"
+    group: "{{ user }}"
+  become: true
+  become_user: root
+
+- name: copy tsa public key
+  template:
+    src: "tsa_public_key.j2"
+    dest: "{{ keys_dir }}/tsa_key.pub"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0644
+
+- name: copy worker public key
+  template:
+    src: "worker_public_key.j2"
+    dest: "{{ keys_dir }}/worker_key.pub"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0644
+
+- name: copy worker private key
+  template:
+    src: "worker_private_key.j2"
+    dest: "{{ keys_dir }}/worker_key"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0600
+
+- name: generate bootstrap file
+  template:
+    src: "bootstrap.sh.j2"
+    dest: "{{ base_dir }}/bootstrap.sh"
+    mode: 0755
+
+- name: create concourse upstart job
+  template:
+    src: "concourse_upstart.conf.j2"
+    dest: "/etc/init/concourse.conf"
+  become: true
+  become_user: root
+
+- name: concourse worker started
+  service:
+    name: concourse
+    state: started
+  become: true
+  become_user: root

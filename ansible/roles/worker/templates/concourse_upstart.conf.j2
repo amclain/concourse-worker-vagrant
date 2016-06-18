@@ -1,0 +1,6 @@
+start on runlevel [2345]
+stop on runlevel [06]
+
+script
+dtach -n {{ dtach_file }} {{ base_dir }}/bootstrap.sh
+end script

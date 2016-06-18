@@ -1,0 +1,8 @@
+kernel_version: 4.4.0-24
+concourse_binary_url: https://github.com/concourse/concourse/releases/download/v1.2.0/concourse_linux_amd64
+base_dir: /opt/concourse
+worker_dir: "{{ base_dir }}/worker"
+bin_file: "{{ base_dir }}/concourse_linux_amd64"
+keys_dir: /var/concourse/keys
+dtach_file: /tmp/concourse.dtach
+dns_server: 8.8.8.8

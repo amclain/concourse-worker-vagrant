@@ -1,0 +1,8 @@
+user: vagrant
+tsa_host: your.hostname.com
+tsa_port: 2222
+tsa_public_key: ""
+worker_public_key: ""
+worker_private_key: |
+  -----BEGIN RSA PRIVATE KEY-----
+  -----END RSA PRIVATE KEY-----

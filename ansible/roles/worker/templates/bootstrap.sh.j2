@@ -1,0 +1,8 @@
+#! /bin/bash
+{{ bin_file }} worker \
+  --work-dir {{ worker_dir }} \
+  --tsa-host {{ tsa_host }} \
+  --tsa-port {{ tsa_port }} \
+  --tsa-public-key {{ keys_dir }}/tsa_key.pub \
+  --tsa-worker-private-key {{ keys_dir }}/worker_key \
+  -- -dnsServer {{ dns_server }}
