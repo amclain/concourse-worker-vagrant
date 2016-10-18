@@ -1,5 +1,5 @@
 kernel_version: 4.4.0-24
-concourse_binary_url: https://github.com/concourse/concourse/releases/download/v1.3.1/concourse_linux_amd64
+concourse_binary_url: https://github.com/concourse/concourse/releases/download/v2.3.1/concourse_linux_amd64
 base_dir: /opt/concourse
 worker_dir: "{{ base_dir }}/worker"
 bin_file: "{{ base_dir }}/concourse_linux_amd64"
